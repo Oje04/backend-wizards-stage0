@@ -20,14 +20,14 @@ const CATFACT_API = process.env.CATFACT_API || 'https://catfact.ninja/fact';
 const CATFACT_TIMEOUT_MS = Number(process.env.CATFACT_TIMEOUT_MS) || 2000;
 
 // Middlewares
-app.use(cors()); // allows cross-origin requests
-app.use(express.json()); // parses JSON body data
-app.use(morgan('dev')); // logs HTTP requests
+app.use(cors()); // allow cross-origin requests
+app.use(express.json()); // parse JSON body data
+app.use(morgan('dev')); // log requests
 
 // Optional: rate limiter (security best practice)
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 60, // limit each IP to 60 requests per minute
+  max: 60, // 60 requests per minute per IP
 });
 app.use(limiter);
 
@@ -35,7 +35,7 @@ app.use(limiter);
 async function fetchCatFact() {
   try {
     const response = await axios.get(CATFACT_API, { timeout: CATFACT_TIMEOUT_MS });
-    if (response?.data?.fact) {
+    if (response && response.data && response.data.fact) {
       return response.data.fact;
     } else {
       console.error('Cat Fact API returned unexpected data:', response.data);
@@ -50,6 +50,7 @@ async function fetchCatFact() {
 // Main endpoint: GET /me
 app.get('/me', async (req, res) => {
   const fact = await fetchCatFact();
+
   const payload = {
     status: 'success',
     user: {
@@ -65,12 +66,13 @@ app.get('/me', async (req, res) => {
   res.status(200).json(payload);
 });
 
-// Optional: health check route
+// Health check route
 app.get('/', (req, res) => {
-  res.send('Server is running! 🚀');
+  res.send('🚀 Server is running and ready for requests!');
 });
 
 // Start the server
-app.listen(PORT, () => {
+console.log("Environment PORT is:", process.env.PORT);
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);
 });
